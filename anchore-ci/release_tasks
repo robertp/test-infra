@@ -193,26 +193,29 @@ push-dcar-artifacts () {
         echo -n ""${PROJECT}"-"${GIT_TAG}"-buildblob.tgz CHECKSUM: "
         cat "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
 
+        # We may or may not do this automatically in the near future.
         # Write out and upload download.json into the relevant DCAR repo
-        cat <<EOF > ./download.json
-{
-  "resources": [{
-    "url": "${DCAR_S3_BUCKET}/${PROJECT}-${GIT_TAG}-buildblob.tgz",
-    "filename": "${PROJECT}-${GIT_TAG}-buildblob.tgz",
-    "auth": {
-      "region": "${AWS_REGION}"
-    },
-    "validation": {
-      "type": "sha256",
-      "value": "${SHA}"
-    }
-  }]
-}
-EOF
+#        cat <<EOF > ./download.json
+#{
+#  "resources": [{
+#    "url": "${DCAR_S3_BUCKET}/${PROJECT}-${GIT_TAG}-buildblob.tgz",
+#    "filename": "${PROJECT}-${GIT_TAG}-buildblob.tgz",
+#    "auth": {
+#      "region": "${AWS_REGION}"
+#    },
+#    "validation": {
+#      "type": "sha256",
+#      "value": "${SHA}"
+#    }
+#  }]
+#}
+#EOF
 
-      print_colorized INFO "download.json:"
-      cat download.json
+      # TODO push download.json into the appropriate git repo
+      # print_colorized INFO "download.json:"
+      # cat download.json
     else
         print_colorized ERROR "DCAR artifacts should only be pushed from the CI environment."; echo
     fi
   }
+
