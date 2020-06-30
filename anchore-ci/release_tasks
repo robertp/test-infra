@@ -200,7 +200,7 @@ push-dcar-artifacts () {
     "url": "${DCAR_S3_BUCKET}/${PROJECT}-${GIT_TAG}-buildblob.tgz",
     "filename": "${PROJECT}-${GIT_TAG}-buildblob.tgz",
     "auth": {
-      "region": "${AWS_REGION}",
+      "region": "${AWS_REGION}"
     },
     "validation": {
       "type": "sha256",
