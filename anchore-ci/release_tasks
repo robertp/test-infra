@@ -147,7 +147,7 @@ push-dcar-artifacts () {
     local PROJECT="${2:?'Missing required parameter: PROJECT'}"
     local GIT_TAG="${3:?'Missing required parameter: GIT_TAG'}"
 
-    # local DCAR_S3_BUCKET="s3://dcar-anchore-artifacts"
+    local DCAR_S3_BUCKET="s3://dcar-anchore-artifacts"
 
     # Only do this in the CI environment
     if [[ "${CI:-false}" == true ]]; then
