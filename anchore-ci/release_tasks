@@ -134,7 +134,7 @@ push-prod-image-rebuild() {
         docker pull "${dev_image}"
 
         print_colorized WARN "Tagging and pushing image ${rebuild_image}."; echo
-    		local rebuild_image="${PROD_IMAGE_REPO}:${GIT_TAG}"
+        local rebuild_image="${PROD_IMAGE_REPO}:${GIT_TAG}"
         docker tag "${dev_image}" "${rebuild_image}"
         docker push "${rebuild_image}"
     else
@@ -186,12 +186,32 @@ push-dcar-artifacts () {
         docker rm "${PROJECT}"-builder
 
         sha256sum "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz > "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
+        SHA=$(cut -d' ' -f1 "${PROJECT}"/"${GIT_TAG}"-buildblob.tgz.sha256sum)
         #aws s3 cp "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz "${DCAR_S3_BUCKET}"/"${PROJECT}"-"${GIT_TAG}"-buildblob.tgz
         #aws s3 cp "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum "${DCAR_S3_BUCKET}"/"${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
 
         echo -n ""${PROJECT}"-"${GIT_TAG}"-buildblob.tgz CHECKSUM: "
         cat "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
 
+        # Write out and upload download.json into the relevant DCAR repo
+        cat <<EOF > ./download.json
+{
+  "resources": [{
+    "url": "${DCAR_S3_BUCKET}/${PROJECT}-${GIT_TAG}-buildblob.tgz",
+    "filename": "${PROJECT}-${GIT_TAG}-buildblob.tgz",
+    "auth": {
+      "region": "${AWS_REGION}",
+    },
+    "validation": {
+      "type": "sha256",
+      "value": "${SHA}"
+    }
+  }]
+}
+EOF
+
+      print_colorized INFO "download.json:"
+      cat download.json
     else
         print_colorized ERROR "DCAR artifacts should only be pushed from the CI environment."; echo
     fi
