@@ -186,7 +186,7 @@ push-dcar-artifacts () {
         docker rm "${PROJECT}"-builder
 
         sha256sum "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz > "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
-        SHA=$(cut -d' ' -f1 "${PROJECT}"/"${GIT_TAG}"-buildblob.tgz.sha256sum)
+        SHA=$(cut -d' ' -f1 "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum)
         #aws s3 cp "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz "${DCAR_S3_BUCKET}"/"${PROJECT}"-"${GIT_TAG}"-buildblob.tgz
         #aws s3 cp "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum "${DCAR_S3_BUCKET}"/"${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
 
