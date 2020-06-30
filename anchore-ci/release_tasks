@@ -143,7 +143,8 @@ push-prod-image-rebuild() {
 }
 
 push-dcar-artifacts () {
-    local GIT_REPO="${1:?'Missing required parameter: GIT_REPO'}"
+    local REPO="${1:?'Missing required parameter: REPO'}"
+    local PROJECT="${2:?'Missing required parameter: PROJECT'}"
     local GIT_TAG="${2:?'Missing required parameter: GIT_TAG'}"
 
     # local DCAR_S3_BUCKET="s3://dcar-anchore-artifacts"
@@ -159,38 +160,37 @@ push-dcar-artifacts () {
           exit 1
         fi
 
-        print_colorized INFO "git repo: ${GIT_REPO}"; echo
+        print_colorized INFO "git repo: ${PROJECT}"; echo
         print_colorized INFO "git tag: ${GIT_TAG}"; echo
 
-        rm -rf /tmp/"${GIT_REPO}"
-        #git clone git@github.com:anchore/"${GIT_REPO}".git /tmp/"${GIT_REPO}"
-        git clone git@github.com:robertp/"${GIT_REPO}".git /tmp/"${GIT_REPO}"
-        cd /tmp/${GIT_REPO}
+        rm -rf /tmp/"${PROJECT}"
+        git clone "${REPO}"/"${PROJECT}".git /tmp/"${PROJECT}"
+        cd /tmp/${PROJECT}
         git checkout tags/"${GIT_TAG}"
 
-        if [[ -f ../Dockerfile."${GIT_REPO}" ]]; then
-            cp -f ../Dockerfile."${GIT_REPO}" Dockerfile
+        if [[ -f ../Dockerfile."${PROJECT}" ]]; then
+            cp -f ../Dockerfile."${PROJECT}" Dockerfile
         fi
 
-        if [[ ${GIT_REPO} == enterprise ]]; then
+        if [[ ${PROJECT} == enterprise ]]; then
             git submodule init
             git submodule sync
             git submodule update
-            docker build --no-cache --target base-builder -t "${GIT_REPO}"-builder .
+            docker build --no-cache --target base-builder -t "${PROJECT}"-builder .
         else
-            docker build --no-cache --target "${GIT_REPO}"-builder -t "${GIT_REPO}"-builder .
+            docker build --no-cache --target "${PROJECT}"-builder -t "${PROJECT}"-builder .
         fi
 
-        docker create --name "${GIT_REPO}"-builder "${GIT_REPO}"-builder
-        docker cp "${GIT_REPO}"-builder:/anchore-buildblob.tgz "${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz
-        docker rm "${GIT_REPO}"-builder
+        docker create --name "${PROJECT}"-builder "${PROJECT}"-builder
+        docker cp "${PROJECT}"-builder:/anchore-buildblob.tgz "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz
+        docker rm "${PROJECT}"-builder
 
-        sha256sum "${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz > "${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
-        #aws s3 cp "${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz "${DCAR_S3_BUCKET}"/"${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz
-        #aws s3 cp "${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz.sha256sum "${DCAR_S3_BUCKET}"/"${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
+        sha256sum "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz > "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
+        #aws s3 cp "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz "${DCAR_S3_BUCKET}"/"${PROJECT}"-"${GIT_TAG}"-buildblob.tgz
+        #aws s3 cp "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum "${DCAR_S3_BUCKET}"/"${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
 
-        echo -n ""${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz CHECKSUM: "
-        cat "${GIT_REPO}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
+        echo -n ""${PROJECT}"-"${GIT_TAG}"-buildblob.tgz CHECKSUM: "
+        cat "${PROJECT}"-"${GIT_TAG}"-buildblob.tgz.sha256sum
 
     else
         print_colorized ERROR "DCAR artifacts should only be pushed from the CI environment."; echo
